@@ -20,8 +20,7 @@ func (app *Application) routes() *chi.Mux {
 
 	router.Use(middleware.Heartbeat("/ping"))
 
-	router.Get("/", app.broker)
-	router.Post("/handle", app.handleSubmission)
+	router.Post("/auth/login", app.login)
 
 	return router
 }
