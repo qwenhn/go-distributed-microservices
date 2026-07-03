@@ -1,0 +1,7 @@
+services:
+  broker:
+    build:
+      context: ./broker-service
+    restart: always
+    ports:
+      - "8080:8080"
