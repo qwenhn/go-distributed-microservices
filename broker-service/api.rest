@@ -14,3 +14,15 @@ Content-Type: application/json
         "password": "verysecret"
     }
 }
+
+### Logger API
+POST {{baseURL}}/handle
+Content-Type: application/json
+
+{
+    "action": "log",
+    "log": {
+        "name": "first log",
+        "data": "first log"
+    }
+}
