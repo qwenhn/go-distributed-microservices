@@ -11,6 +11,7 @@ type RequestPayload struct {
 	Action string      `json:"action"`
 	Auth   AuthPayload `json:"auth,omitempty"`
 	Log    LogPayload  `json:"log,omitempty"`
+	Mail   MailPayload `json:"mail,omitempty"`
 }
 
 type AuthPayload struct {
@@ -21,6 +22,13 @@ type AuthPayload struct {
 type LogPayload struct {
 	Name string `json:"name"`
 	Data string `json:"data"`
+}
+
+type MailPayload struct {
+	From    string `json:"from"`
+	To      string `json:"to"`
+	Subject string `json:"subject"`
+	Message string `json:"message"`
 }
 
 func (app *Application) broker(w http.ResponseWriter, r *http.Request) {
@@ -51,6 +59,9 @@ func (app *Application) handleSubmission(w http.ResponseWriter, r *http.Request)
 
 	case "log":
 		app.log(w, requestPayload.Log)
+
+	case "mail":
+		app.mail(w, requestPayload.Mail)
 
 	default:
 		app.errorJSON(w, errors.New("Invalid action"))
@@ -135,6 +146,40 @@ func (app *Application) log(w http.ResponseWriter, p LogPayload) {
 		Error:   false,
 		Message: "Logged",
 	}
+
+	err = app.writeJSON(w, http.StatusAccepted, payload)
+	if err != nil {
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+}
+
+func (app *Application) mail(w http.ResponseWriter, p MailPayload) {
+	jsonData, _ := json.MarshalIndent(p, "", "\t")
+
+	request, err := http.NewRequest("POST", "http://mailer:8080/send", bytes.NewBuffer(jsonData))
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+	request.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	response, err := client.Do(request)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusAccepted {
+		app.errorJSON(w, errors.New("error calling mailer service"))
+		return
+	}
+
+	var payload JsonResponse
+	payload.Error = false
+	payload.Message = "Message sent to " + p.To
 
 	err = app.writeJSON(w, http.StatusAccepted, payload)
 	if err != nil {

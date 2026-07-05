@@ -26,3 +26,17 @@ Content-Type: application/json
         "data": "first log"
     }
 }
+
+### Mailer API
+POST http://localhost:8080/handle
+Content-Type: application/json
+
+{
+    "action": "mail",
+    "mail": {
+        "from": "from@example.com",
+        "to": "john.smith@example.com",
+        "subject": "This is subject",
+        "message": "This is message"
+    }
+}
