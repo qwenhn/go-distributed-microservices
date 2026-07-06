@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+
+	"broker/lib/event"
 )
 
 type RequestPayload struct {
@@ -62,6 +64,9 @@ func (app *Application) handleSubmission(w http.ResponseWriter, r *http.Request)
 
 	case "mail":
 		app.mail(w, requestPayload.Mail)
+
+	case "log-mq":
+		app.logViaRabbitMQ(w, requestPayload.Log)
 
 	default:
 		app.errorJSON(w, errors.New("Invalid action"))
@@ -186,4 +191,43 @@ func (app *Application) mail(w http.ResponseWriter, p MailPayload) {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
+}
+
+func (app *Application) logViaRabbitMQ(w http.ResponseWriter, p LogPayload) {
+	err := app.pushToAMQP(p.Name, p.Data)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	var payload JsonResponse
+	payload.Error = false
+	payload.Message = "Logged via RabbitMQ"
+
+	err = app.writeJSON(w, http.StatusAccepted, payload)
+	if err != nil {
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+}
+
+func (app *Application) pushToAMQP(name, msg string) error {
+	emitter, err := event.NewEventEmitter(app.RabbitConn)
+	if err != nil {
+		return err
+	}
+
+	payload := LogPayload{
+		Name: name,
+		Data: msg,
+	}
+
+	jsonData, _ := json.MarshalIndent(payload, "", "\t")
+
+	err = emitter.Push(string(jsonData), "log.INFO")
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

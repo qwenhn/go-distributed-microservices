@@ -5,8 +5,11 @@ services:
     restart: always
     ports:
       - "8080:8080"
+    environment:
+      RABBITMQ_URL: "amqp://admin:password@rabbitmq:5672/"
     depends_on:
       - auth
+      - rabbitmq
   
   auth:
     build:
@@ -44,6 +47,18 @@ services:
       MAIL_PASSWORD: ""
       FROM_FROM_NAME: "John Smith"
       FROM_FROM_ADDRESS: john.smith@example.com
+      RABBITMQ_URL: "amqp://admin:password@rabbitmq:5672/"
+    depends_on:
+      - rabbitmq
+
+  listener:
+    build:
+      context: ./listener-service
+    restart: always
+    environment:
+      RABBITMQ_URL: "amqp://admin:password@rabbitmq:5672/"
+    depends_on:
+      - rabbitmq
 
   postgres:
     image: postgres:18.3
@@ -74,6 +89,19 @@ services:
       - "1025:1025"
       - "8025:8025"
 
+  rabbitmq:
+    image: rabbitmq:4-management
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: password
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
 volumes:
   postgres_data:
   mongo_data:
+  rabbitmq_data:

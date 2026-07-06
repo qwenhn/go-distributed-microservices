@@ -40,3 +40,15 @@ Content-Type: application/json
         "message": "This is message"
     }
 }
+
+### RabbitMQ API
+POST http://localhost:8080/handle
+Content-Type: application/json
+
+{
+    "action": "log-mq",
+    "log": {
+        "name": "first log RabbitMQ",
+        "data": "first log RabbitMQ"
+    }
+}
