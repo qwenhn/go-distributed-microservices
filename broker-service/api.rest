@@ -52,3 +52,15 @@ Content-Type: application/json
         "data": "first log RabbitMQ"
     }
 }
+
+### RPC API
+POST http://localhost:8080/handle
+Content-Type: application/json
+
+{
+    "action": "log-rpc",
+    "log": {
+        "name": "first name RPC",
+        "data": "first data RPC"
+    }
+}
