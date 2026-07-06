@@ -1,4 +1,4 @@
-.PHONY: up down logs build restart
+.PHONY: up down logs build restart tidy
 
 up:
 	docker compose up --build
@@ -10,3 +10,5 @@ build:
 	docker compose build
 restart:
 	docker compose down && docker compose up --build
+tidy:
+	find . -name go.mod -execdir go mod tidy \;

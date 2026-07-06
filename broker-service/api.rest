@@ -64,3 +64,15 @@ Content-Type: application/json
         "data": "first data RPC"
     }
 }
+
+### gRPC API
+POST http://localhost:8080/handle
+Content-Type: application/json
+
+{
+    "action": "log-grpc",
+    "log": {
+        "name": "first name gRPC",
+        "data": "first data gRPC"
+    }
+}
